@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gọt Mít</title>
+    <title>Trò Chơi Gọt Mít</title>
     <style>
         /* --- CSS --- */
         @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Roboto:wght@400;700&display=swap');
@@ -17,13 +17,27 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            position: relative;
+        }
+
+        /* Hình nền bg.webp xuyên suốt game với độ mờ 50% */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url('bg.webp');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.5;
+            z-index: -1;
         }
 
         #game-container {
             position: relative;
             width: 900px;
             height: 700px;
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.9); /* Làm trắng nhẹ để dễ nhìn nội dung */
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             overflow: hidden;
@@ -43,7 +57,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #fffbeb;
+            background-color: rgba(255, 251, 235, 0.9);
             z-index: 10;
         }
 
@@ -106,7 +120,6 @@
             position: relative;
         }
 
-        /* Khu vực hiển thị Mít và Nạo */
         .visual-area {
             height: 400px;
             width: 100%;
@@ -120,10 +133,9 @@
         .fruit-wrapper {
             position: relative;
             width: 400px;
-            height: 300px; /* Tỉ lệ ảnh mít */
+            height: 300px;
         }
 
-        /* Lớp mít đã bóc (ẩn bên dưới) */
         .peeled-layer {
             position: absolute;
             top: 0;
@@ -135,7 +147,6 @@
             background-repeat: no-repeat;
         }
 
-        /* Lớp vỏ mít (chia thành 10 phần) */
         .raw-layer {
             position: absolute;
             top: 0;
@@ -146,21 +157,19 @@
         }
 
         .slice {
-            flex: 1; /* Chia đều 10 phần */
+            flex: 1;
             background-image: url('589646983_1948335472447220_7961946277988129556_n (1).png');
-            background-size: 400px 300px; /* Kích thước bằng wrapper */
+            background-size: 400px 300px;
             background-repeat: no-repeat;
-            /* background-position sẽ được set bằng JS */
             transition: opacity 0.5s;
         }
 
-        /* Cái nạo */
         #peeler {
             position: absolute;
             width: 80px;
             height: auto;
             z-index: 5;
-            top: -60px; /* Vị trí bắt đầu */
+            top: -60px;
             transition: all 0.5s ease-in-out;
             cursor: pointer;
         }
@@ -175,7 +184,6 @@
             100% { transform: scale(1); }
         }
 
-        /* Khu vực câu hỏi */
         .question-area {
             position: absolute;
             bottom: 0;
@@ -184,7 +192,7 @@
             background-color: #fce4ec;
             border-top: 5px solid #e91e63;
             box-sizing: border-box;
-            transform: translateY(100%); /* Ẩn ban đầu */
+            transform: translateY(100%);
             transition: transform 0.3s;
         }
 
@@ -223,7 +231,6 @@
         .option-btn.correct { background-color: #d4edda; border-color: #28a745; }
         .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; }
 
-        /* --- Hiệu ứng Rơi (Thua) --- */
         .falling {
             animation: fallDown 1s forwards ease-in;
         }
@@ -240,13 +247,20 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             color: white;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 20;
             text-align: center;
+        }
+
+        /* Meme.lost ở giữa bên trên */
+        .meme-lost-img {
+            width: 250px;
+            border-radius: 15px;
+            margin-bottom: 20px;
         }
 
         .retry-btn {
@@ -260,7 +274,6 @@
             cursor: pointer;
         }
 
-        /* --- Màn hình Thành công --- */
         #success-screen {
             display: none;
             position: absolute;
@@ -276,7 +289,7 @@
         }
 
         .final-dish {
-            width: 300px; /* Bắt đầu nhỏ */
+            width: 300px;
             transition: width 2s ease-out;
             border-radius: 20px;
             box-shadow: 0 0 50px #ff9800;
@@ -301,14 +314,14 @@
 
     </style>
 </head>
-<body>
+<body onload="initIntroSound()">
 
     <div id="game-container">
         
-        <audio id="sound-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
-        <audio id="sound-wrong" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+        <audio id="sound-intro" src="intro_outro.mp3" loop></audio>
+        <audio id="sound-correct" src="sound_win.mp3"></audio>
+        <audio id="sound-wrong" src="sound_lost.mp3"></audio>
         <audio id="sound-peel" src="https://assets.mixkit.co/sfx/preview/mixkit-paper-slide-1530.mp3"></audio>
-        <audio id="sound-win" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
 
         <div id="start-screen">
             <img src="566556860_805605658780374_8685542069691118495_n.jpg" class="meme-corner top-left" alt="Meme 1">
@@ -333,13 +346,12 @@
 
             <div class="question-area" id="question-area">
                 <div class="question-text" id="q-text">Câu hỏi ở đây...</div>
-                <div class="options-grid" id="opt-grid">
-                    </div>
+                <div class="options-grid" id="opt-grid"></div>
             </div>
         </div>
 
         <div id="fail-screen">
-            <img src="567123774_1558968145545942_2754862854628800996_n.jpg" style="width: 200px; border-radius: 10px; margin-bottom: 20px;" alt="Fail Meme">
+            <img src="meme.lost.PNG" class="meme-lost-img" alt="Fail Meme">
             <h2>Bạn đã làm rơi mít!</h2>
             <p>Vui lòng gọt mít cẩn thận hơn.</p>
             <button class="retry-btn" onclick="retryLevel()">Quay lại</button>
@@ -370,28 +382,32 @@
             { q: "Sóng radio AM được xem là tín hiệu tương tự vì:", options: ["A. Biên độ sóng thay đổi liên tục để mang thông tin", "B. Tần số sóng được mã hóa rời rạc", "C. Tín hiệu chỉ có 0 và 1", "D. Tất cả sai"], ans: 0 }
         ];
 
-        // --- BIẾN TRẠNG THÁI ---
         let currentQuestionIdx = 0;
-        let isPeelerActive = false; // Trạng thái chờ click vào nạo
+        let isPeelerActive = false; 
         const totalSlices = 10;
         
-        // --- DOM ELEMENTS ---
         const peeler = document.getElementById('peeler');
         const rawLayer = document.getElementById('raw-layer');
         const questionArea = document.getElementById('question-area');
         const fruitWrapper = document.getElementById('fruit-wrapper');
+        const soundIntro = document.getElementById('sound-intro');
+        const soundCorrect = document.getElementById('sound-correct');
+        const soundWrong = document.getElementById('sound-wrong');
 
-        // --- KHỞI TẠO GAME ---
+        // Khởi tạo âm thanh nền
+        function initIntroSound() {
+            // Trình duyệt thường chặn auto-play, nhạc sẽ phát khi user tương tác lần đầu
+            soundIntro.play().catch(() => {
+                console.log("Chờ người chơi tương tác để phát nhạc.");
+            });
+        }
+
         function initGame() {
-            // Tạo 10 miếng vỏ mít
             rawLayer.innerHTML = '';
             for (let i = 0; i < totalSlices; i++) {
                 let slice = document.createElement('div');
                 slice.classList.add('slice');
                 slice.id = `slice-${i}`;
-                // Cắt ảnh background cho từng miếng
-                // Vì flex chia đều, ta chỉ cần chỉnh background-position-x
-                // slice 0 (trái) -> 0%, slice 9 (phải) -> 100%
                 let pos = (i / (totalSlices - 1)) * 100;
                 slice.style.backgroundPositionX = `${pos}%`;
                 rawLayer.appendChild(slice);
@@ -399,30 +415,24 @@
         }
 
         function startGame() {
+            soundIntro.pause(); // Tắt nhạc intro khi vào game
+            soundIntro.currentTime = 0;
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('game-play-screen').style.display = 'block';
             initGame();
             prepareRound();
         }
 
-        // --- LOGIC VÒNG CHƠI ---
         function prepareRound() {
-            // Reset UI
             questionArea.classList.remove('active');
-            
-            // Tính vị trí nạo
-            // Chúng ta gọt từ Phải sang Trái -> Bắt đầu từ slice 9 về 0
             let currentSliceIndex = (totalSlices - 1) - currentQuestionIdx;
-            
-            // Di chuyển nạo đến vị trí miếng mít hiện tại
-            let sliceWidth = 400 / totalSlices; // 40px
-            let leftPos = (currentSliceIndex * sliceWidth) + (sliceWidth/2) - (80/2); // Center peeler on slice
+            let sliceWidth = 400 / totalSlices; 
+            let leftPos = (currentSliceIndex * sliceWidth) + (sliceWidth/2) - (80/2); 
             
             peeler.style.left = `${leftPos}px`;
-            peeler.style.top = '-60px'; // Reset độ cao
+            peeler.style.top = '-60px'; 
             peeler.style.transform = 'rotate(0deg)';
 
-            // Bật trạng thái click cho nạo
             isPeelerActive = true;
             peeler.classList.add('clickable');
             peeler.onclick = onPeelerClick;
@@ -433,7 +443,6 @@
             isPeelerActive = false;
             peeler.classList.remove('clickable');
             peeler.onclick = null;
-
             showQuestion();
         }
 
@@ -451,54 +460,39 @@
                 btn.onclick = () => checkAnswer(idx, btn);
                 grid.appendChild(btn);
             });
-
             questionArea.classList.add('active');
         }
 
         function checkAnswer(selectedIdx, btnElement) {
-            // Disable buttons
             const allBtns = document.querySelectorAll('.option-btn');
             allBtns.forEach(b => b.disabled = true);
-
             const correctIdx = questions[currentQuestionIdx].ans;
 
             if (selectedIdx === correctIdx) {
-                // Đúng
                 btnElement.classList.add('correct');
-                document.getElementById('sound-correct').play();
+                soundCorrect.play(); // Play sound_win.mp3
                 setTimeout(performPeelAction, 1000);
             } else {
-                // Sai
                 btnElement.classList.add('wrong');
-                // Highlight đúng
                 allBtns[correctIdx].classList.add('correct');
-                document.getElementById('sound-wrong').play();
+                soundWrong.play(); // Play sound_lost.mp3
                 setTimeout(performFailAction, 1000);
             }
         }
 
-        // --- HÀNH ĐỘNG GỌT (ĐÚNG) ---
         function performPeelAction() {
             questionArea.classList.remove('active');
-            
-            // Âm thanh gọt
             document.getElementById('sound-peel').play();
+            peeler.style.top = '250px'; 
 
-            // 1. Nạo đi xuống
-            peeler.style.top = '250px'; // Gọt xuống cuối quả
-
-            // 2. Ẩn vỏ mít (Sau khi nạo đi qua một chút)
             setTimeout(() => {
                 let currentSliceIndex = (totalSlices - 1) - currentQuestionIdx;
                 let slice = document.getElementById(`slice-${currentSliceIndex}`);
-                if (slice) slice.style.opacity = '0'; // Mất vỏ
+                if (slice) slice.style.opacity = '0'; 
             }, 300);
 
-            // 3. Nạo đi lên và sang trái (chuẩn bị vòng sau)
             setTimeout(() => {
                 peeler.style.top = '-60px';
-                
-                // Check win
                 if (currentQuestionIdx === totalSlices - 1) {
                     setTimeout(finishGame, 1000);
                 } else {
@@ -508,13 +502,9 @@
             }, 800);
         }
 
-        // --- HÀNH ĐỘNG RƠI (SAI) ---
         function performFailAction() {
             questionArea.classList.remove('active');
-            
-            // Hiệu ứng rơi cho cả quả mít và nạo
             fruitWrapper.classList.add('falling');
-            
             setTimeout(() => {
                 document.getElementById('fail-screen').style.display = 'flex';
             }, 1000);
@@ -523,26 +513,20 @@
         function retryLevel() {
             document.getElementById('fail-screen').style.display = 'none';
             fruitWrapper.classList.remove('falling');
-            
-            // Reset câu hỏi hiện tại để làm lại
             prepareRound(); 
         }
 
-        // --- KẾT THÚC GAME ---
         function finishGame() {
             document.getElementById('game-play-screen').style.display = 'none';
             const successScreen = document.getElementById('success-screen');
             successScreen.style.display = 'flex';
             
-            document.getElementById('sound-win').play();
+            soundIntro.play(); // Phát lại nhạc intro_outro.mp3 khi thắng
 
-            // Phóng to đĩa mít
             setTimeout(() => {
-                document.getElementById('final-dish').style.width = "600px"; // Phóng to dần
+                document.getElementById('final-dish').style.width = "600px"; 
             }, 100);
         }
-
     </script>
 </body>
-
 </html>
